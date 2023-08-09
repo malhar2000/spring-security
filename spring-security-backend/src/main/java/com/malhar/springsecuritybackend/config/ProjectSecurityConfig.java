@@ -1,6 +1,9 @@
 package com.malhar.springsecuritybackend.config;
 
+import com.malhar.springsecuritybackend.filter.AuthoritiesLoggingAfterFilter;
+import com.malhar.springsecuritybackend.filter.AuthoritiesLoggingAtFilter;
 import com.malhar.springsecuritybackend.filter.CsrfCookieFilter;
+import com.malhar.springsecuritybackend.filter.RequestValidationBeforeFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -50,9 +53,12 @@ public class ProjectSecurityConfig {
             .csrf((csrf) -> csrf.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler).ignoringRequestMatchers("/contact", "/register")
                     .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
             )
+                .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
                 // becoz we are using http basic auth therefore that class.
                 // execute the csrf filter after basic auth filter
                 .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(new AuthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class)
+                .addFilterAt(new AuthoritiesLoggingAtFilter(), BasicAuthenticationFilter.class)
                 .authorizeHttpRequests((requests) ->
 //                        requests.requestMatchers("/myAccount").hasAuthority("VIEWACCOUNT")
 //                        .requestMatchers("/myBalance").hasAnyAuthority("VIEWACCOUNT","VIEWBALANCE")
